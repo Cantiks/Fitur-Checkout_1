@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Products</title>
+  </head>
+  <body>
+    <h1>Add Products</h1>
+    <form id="addProductForm">
+      <div style="display: flex; flex-direction: column">
+        <label for="title">Nama barang</label>
+        <input autofocus id="title" placeholder="Title" type="text" />
+      </div>
+      <div style="display: flex; flex-direction: column">
+        <label for="price">Price</label>
+        <input id="price" placeholder="Price" type="number" />
+      </div>
+      <input type="submit" value="Tambahkan ke Checkout" />
+    </form>
+    <hr />
+    <h2>Products</h2>
+    <div id="productsList"></div>
+
+    <h2>Checkout</h2>
+    <div id="checkoutList"></div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        function getProducts() {
+          fetch("http://localhost:3000/product")
+            .then((res) => res.json())
+            .then((object) => {
+              const productsList = document.getElementById("productsList");
+
+              object.data.forEach((product) => {
+                let productContainer = document.createElement("div");
+                let image = document.createElement("img");
+                let h2 = document.createElement("h2");
+                let price = document.createElement("p");
+
+                h2.textContent = product.name;
+                price.textContent = "Price: $" + product.price.toFixed(2);
+                image.src = `http://localhost:3000${product.image}`;
+
+                productContainer.appendChild(image);
+                productContainer.appendChild(h2);
+                productContainer.appendChild(price);
+                productsList.appendChild(productContainer);
+              });
+            });
+        }
+
+        getProducts();
+
+        const form = document.getElementById("addProductForm");
+        const checkoutList = document.getElementById("checkoutList");
+
+        form.onsubmit = function (event) {
+          event.preventDefault();
+
+          const title = document.getElementById("title").value;
+          const price = parseFloat(document.getElementById("price").value);
+
+          const product = {
+            name: title,
+            price: price,
+          };
+
+          fetch("http://localhost:3000/checkout", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(product),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              console.log(data);
+              let checkoutItem = document.createElement("div");
+              checkoutItem.textContent = `${data.data.name} - Price: $${data.data.price.toFixed(2)}`;
+              checkoutList.appendChild(checkoutItem);
+            });
+
+          form.reset();
+        };
+      });
+    </script>
+  </body>
+</html>
